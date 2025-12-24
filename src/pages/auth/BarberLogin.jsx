@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { useNavigate } from "react-router-dom";
 import InputRegister from "../../components/InputRegister";
 import BackButton from "../../components/BackButton";
 
@@ -7,6 +8,7 @@ export default function BarberLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function BarberLogin() {
     if (error) {
       alert(error.message);
     } else {
-      console.log("Login do barbeiro realizado com sucesso");
+      navigate("/dashboard/barber");
     }
 
     setLoading(false);

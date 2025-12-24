@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import InputRegister from "../../components/InputRegister";
 import BackButton from "../../components/BackButton";
@@ -7,6 +8,7 @@ export default function UserLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -20,8 +22,7 @@ export default function UserLogin() {
     if (error) {
       alert(error.message);
     } else {
-      // depois vamos redirecionar usando o role
-      console.log("Login realizado com sucesso");
+      navigate("/dashboard/user");
     }
 
     setLoading(false);

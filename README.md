@@ -207,19 +207,4 @@ Buscando a primeira oportunidade profissional na área de tecnologia 🚀
 
 📄 Licença
 Projeto desenvolvido para fins educacionais e profissionais.
-
-markdown
-Copiar código
-
----
-
-## 🔥 Próximo nível (opcional)
-Se quiser, posso:
-- adaptar esse README para **inglês**
-- criar uma versão focada em **LinkedIn**
-- revisar o código pensando como recrutador
-- preparar o projeto para **deploy real**
-- te ajudar a transformar isso num **case de portfólio**
-
-Você está **no caminho certo**. Esse projeto já está acima da média para quem busca primeira vaga 👏
 ```

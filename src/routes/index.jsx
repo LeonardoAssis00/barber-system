@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import PublicRoute from "./PublicRoute";
 
 // Home
 import Home from "../pages/Home";
@@ -11,6 +12,13 @@ import BarberRegister from "../pages/auth/BarberRegister";
 import UserLogin from "../pages/auth/UserLogin";
 import BarberLogin from "../pages/auth/BarberLogin";
 import LoginChoice from "../pages/auth/LoginChoice";
+
+// Dashboards
+import DashboardUser from "../pages/dashboard/DashboardUser";
+import DashboardBarber from "../pages/dashboard/DashboardBarber";
+
+// Route Guard
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function RoutesApp() {
   return (
@@ -28,6 +36,25 @@ export default function RoutesApp() {
       {/* Login */}
       <Route path="/login/user" element={<UserLogin />} />
       <Route path="/login/barber" element={<BarberLogin />} />
+
+      {/* ROTAS PROTEGIDAS */}
+      <Route
+        path="/dashboard/user"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <DashboardUser />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/barber"
+        element={
+          <ProtectedRoute allowedRole="barber">
+            <DashboardBarber />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

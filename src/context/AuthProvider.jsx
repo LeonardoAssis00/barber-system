@@ -19,6 +19,19 @@ export default function AuthProvider({ children }) {
     }
   }
 
+  async function signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -56,6 +69,7 @@ export default function AuthProvider({ children }) {
         profile,
         loading,
         signOut,
+        signIn,
       }}
     >
       {children}
