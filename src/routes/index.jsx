@@ -14,8 +14,8 @@ import BarberLogin from "../pages/auth/BarberLogin";
 import LoginChoice from "../pages/auth/LoginChoice";
 
 // Dashboards
-import DashboardUser from "../pages/dashboard/DashboardUser";
-import DashboardBarber from "../pages/dashboard/DashboardBarber";
+import DashboardUser from "../pages/dashboard/user/DashBoardUser";
+import DashboardBarber from "../pages/dashboard/barber/DashBoardBarber";
 
 // Route Guard
 import ProtectedRoute from "./ProtectedRoute";
