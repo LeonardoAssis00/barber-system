@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Copy } from "lucide-react";
 import { AuthContext } from "../../../context/AuthContext";
 
 import ServiceForm from "../../../components/barber/ServiceForm";
@@ -11,7 +11,8 @@ import AgendaList from "../../../components/barber/AgendaList";
 import BookingList from "../../../components/barber/BookingList";
 
 export default function DashboardBarber() {
-  const { signOut } = useContext(AuthContext);
+  const { signOut, barberShop } = useContext(AuthContext);
+
   const [activeTab, setActiveTab] = useState("home");
   const [services, setServices] = useState([]);
   const [agenda, setAgenda] = useState([]);
@@ -25,7 +26,6 @@ export default function DashboardBarber() {
       date: "2025-01-23",
       time: "10:00",
     },
-
     {
       id: "2",
       client: "Matheus Henrique",
@@ -34,7 +34,6 @@ export default function DashboardBarber() {
       date: "2025-01-23",
       time: "11:00",
     },
-
     {
       id: "3",
       client: "Lucas Rocha",
@@ -51,6 +50,15 @@ export default function DashboardBarber() {
 
   function handleDeleteService(id) {
     setServices((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  const publicUrl = barberShop
+    ? `${window.location.origin}/${barberShop.slug}`
+    : "";
+
+  function handleCopyLink() {
+    navigator.clipboard.writeText(publicUrl);
+    alert("Link da barbearia copiado!");
   }
 
   return (
@@ -100,9 +108,28 @@ export default function DashboardBarber() {
         {activeTab === "home" && (
           <>
             <h2 className="text-lg font-medium mb-4">Resumo do dia</h2>
-            <p className="text-zinc-400 text-sm">
+
+            <p className="text-zinc-400 text-sm mb-6">
               Aqui você verá os agendamentos de hoje e um resumo da barbearia.
             </p>
+
+            {barberShop && (
+              <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-zinc-400">
+                    Link público da sua barbearia
+                  </p>
+                  <p className="text-amber-500 font-medium">{publicUrl}</p>
+                </div>
+
+                <button
+                  onClick={handleCopyLink}
+                  className="text-zinc-400 hover:text-amber-400 transition"
+                >
+                  <Copy size={18} />
+                </button>
+              </div>
+            )}
           </>
         )}
 

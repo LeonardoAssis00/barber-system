@@ -14,17 +14,39 @@ export default function BarberLogin() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       alert(error.message);
-    } else {
-      navigate("/dashboard/barber");
+      setLoading(false);
+      return;
     }
 
+    // 🔽 BUSCAR PROFILE APÓS LOGIN
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError) {
+      alert("Erro ao carregar perfil do usuário");
+      setLoading(false);
+      return;
+    }
+
+    if (profile.role !== "barber") {
+      alert("Esta conta não é de barbeiro");
+      await supabase.auth.signOut();
+      setLoading(false);
+      return;
+    }
+
+    // ✅ LOGIN COMPLETO
+    navigate("/dashboard/barber");
     setLoading(false);
   }
 
@@ -45,13 +67,17 @@ export default function BarberLogin() {
         <InputRegister
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <InputRegister
           type="password"
           placeholder="Senha"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
         <button

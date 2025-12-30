@@ -5,7 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 export default function ProtectedRoute({ children, allowedRole }) {
   const { user, profile, loading } = useContext(AuthContext);
 
-  // Enquanto carrega a sessão/perfil
+  // Enquanto auth ou profile estão carregando
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-zinc-400">
@@ -14,21 +14,24 @@ export default function ProtectedRoute({ children, allowedRole }) {
     );
   }
 
-  // Se não estiver logado
+  // Não logado
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Se o perfil ainda não carregou
+  // Profile ainda não disponível → aguarda
   if (!profile) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-zinc-400">
+        Preparando sua conta...
+      </div>
+    );
   }
 
-  // Se o tipo de usuário não for permitido
+  // Role inválida
   if (allowedRole && profile.role !== allowedRole) {
     return <Navigate to="/" replace />;
   }
 
-  // Tudo ok → libera acesso
   return children;
 }
