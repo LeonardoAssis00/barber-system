@@ -1,37 +1,44 @@
 import { useState } from "react";
+import { supabase } from "../../lib/supabase";
 
-export default function AgendaForm({ onChange }) {
+export default function AgendaForm({ barberShopId, onAdd }) {
   const [day, setDay] = useState("");
   const [time, setTime] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!day || !time) return;
+    if (!day || !time || !barberShopId) return;
 
-    onChange((prev) => {
-      const dayIndex = prev.findIndex((d) => d.day === day);
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("barber_slots")
+        .insert([
+          {
+            barber_shop_id: barberShopId,
+            day_of_week: day,
+            start_time: time,
+          },
+        ])
+        .select()
+        .single();
 
-      // Se o dia ainda não existe
-      if (dayIndex === -1) {
-        return [...prev, { day, slots: [time] }];
+      if (error) {
+        if (error.code === "23505") {
+          alert("Este horário já existe para este dia!");
+        } else {
+          throw error;
+        }
+      } else {
+        onAdd(data); // Notifica o Dashboard para atualizar a lista
+        setTime("");
       }
-
-      // Se o horário já existe nesse dia, não adiciona
-      if (prev[dayIndex].slots.includes(time)) {
-        return prev;
-      }
-
-      // Adiciona horário ao dia existente
-      const updated = [...prev];
-      updated[dayIndex] = {
-        ...updated[dayIndex],
-        slots: [...updated[dayIndex].slots, time],
-      };
-
-      return updated;
-    });
-
-    setTime("");
+    } catch (error) {
+      alert("Erro ao adicionar horário: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -42,9 +49,10 @@ export default function AgendaForm({ onChange }) {
       <select
         value={day}
         onChange={(e) => setDay(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm"
+        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-100 focus:border-amber-500 outline-none"
+        required
       >
-        <option value="">Dia da semana</option>
+        <option value="">Selecione o dia</option>
         <option value="monday">Segunda</option>
         <option value="tuesday">Terça</option>
         <option value="wednesday">Quarta</option>
@@ -58,11 +66,15 @@ export default function AgendaForm({ onChange }) {
         type="time"
         value={time}
         onChange={(e) => setTime(e.target.value)}
-        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm"
+        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-100 focus:border-amber-500 outline-none"
+        required
       />
 
-      <button className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-medium px-6 rounded-lg transition">
-        Adicionar horário
+      <button
+        disabled={loading}
+        className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-zinc-950 font-bold px-6 rounded-lg transition"
+      >
+        {loading ? "Salvando..." : "Adicionar horário"}
       </button>
     </form>
   );

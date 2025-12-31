@@ -1,65 +1,77 @@
 import { useState } from "react";
+import { supabase } from "../../lib/supabase";
 
-export default function ServiceForm({ onAdd }) {
+export default function ServiceForm({ barberShopId, onAdd }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function formatPrice(value) {
-    if (!value) return "";
-    const number = Number(value.replace(",", "."));
-    if (isNaN(number)) return "";
-    return number.toFixed(2);
-  }
-
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    if (!barberShopId) return alert("Erro: Barbearia não identificada.");
 
-    if (!name || !price || !duration) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("services")
+      .insert([
+        {
+          name,
+          price: parseFloat(price),
+          duration: parseInt(duration),
+          barber_shop_id: barberShopId,
+        },
+      ])
+      .select()
+      .single();
 
-    onAdd({
-      id: crypto.randomUUID(),
-      name,
-      price: Number(price), // 🔥 número puro
-      duration: Number(duration),
-    });
+    setLoading(false);
 
-    setName("");
-    setPrice("");
-    setDuration("");
+    if (error) {
+      alert("Erro ao salvar: " + error.message);
+    } else {
+      onAdd(data); // Atualiza a lista no Dashboard
+      setName("");
+      setPrice("");
+      setDuration("");
+    }
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+      className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-zinc-800/30 p-4 rounded-lg border border-zinc-800"
     >
       <input
-        placeholder="Nome do serviço"
-        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm"
+        type="text"
+        placeholder="Nome do serviço (ex: Corte)"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        className="bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+        required
       />
-
-      <input
-        type="text"
-        placeholder="Preço (ex: 25.00)"
-        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm"
-        value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9.,]/g, ""))}
-        onBlur={() => setPrice(formatPrice(price))} // ✅ converte ao sair
-      />
-
       <input
         type="number"
-        placeholder="Duração (min)"
-        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm"
+        placeholder="Preço (R$)"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        className="bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+        required
+      />
+      <input
+        type="number"
+        placeholder="Duração (minutos)"
         value={duration}
         onChange={(e) => setDuration(e.target.value)}
+        className="bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+        required
       />
-
-      <button className="md:col-span-3 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-medium py-3 rounded-lg transition">
-        Cadastrar serviço
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-lg p-2 transition disabled:opacity-50"
+      >
+        {loading ? "Salvando..." : "Adicionar"}
       </button>
     </form>
   );

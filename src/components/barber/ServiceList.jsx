@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 
 export default function ServiceList({ services, onDelete }) {
   if (services.length === 0) {
@@ -7,14 +8,20 @@ export default function ServiceList({ services, onDelete }) {
     );
   }
 
-  function handleDelete(service) {
-    const confirmed = window.confirm(
-      `Tem certeza que deseja excluir o serviço "${service.name}"?`
-    );
-
+  async function handleDelete(service) {
+    const confirmed = window.confirm(`Excluir "${service.name}"?`);
     if (!confirmed) return;
 
-    onDelete(service.id);
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .eq("id", service.id);
+
+    if (error) {
+      alert("Erro ao excluir: " + error.message);
+    } else {
+      onDelete(service.id); // Remove da tela
+    }
   }
 
   return (
@@ -25,16 +32,14 @@ export default function ServiceList({ services, onDelete }) {
           className="flex justify-between items-center bg-zinc-800 border border-zinc-700 rounded-lg p-4"
         >
           <div>
-            <p className="font-medium">{service.name}</p>
+            <p className="font-medium text-zinc-100">{service.name}</p>
             <p className="text-sm text-zinc-400">
-              R$ {service.price.toFixed(2)} • {service.duration} min
+              R$ {Number(service.price).toFixed(2)} • {service.duration} min
             </p>
           </div>
-
           <button
             onClick={() => handleDelete(service)}
-            className="text-zinc-400 hover:text-red-400 transition"
-            title="Excluir serviço"
+            className="text-zinc-500 hover:text-red-400 transition"
           >
             <Trash2 size={18} />
           </button>

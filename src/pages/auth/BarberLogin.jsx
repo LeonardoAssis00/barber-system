@@ -12,42 +12,54 @@ export default function BarberLogin() {
 
   async function handleLogin(e) {
     e.preventDefault();
+    if (loading) return; // Evita cliques duplos
+
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // 1. Autenticação básica
+      const { data, error: authError } = await supabase.auth.signInWithPassword(
+        {
+          email,
+          password,
+        }
+      );
 
-    if (error) {
+      if (authError) throw authError;
+
+      // 2. Buscar Profile após login bem-sucedido
+      // O RLS precisa permitir SELECT na tabela profiles para auth.uid() = id
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError) {
+        // Se der erro aqui, pode ser que o profile não foi criado ou RLS bloqueou
+        console.error("Erro ao buscar profile:", profileError);
+        throw new Error(
+          "Não foi possível carregar seu perfil. Verifique sua conexão."
+        );
+      }
+
+      // 3. Verificar permissão
+      if (profile.role !== "barber") {
+        await supabase.auth.signOut();
+        throw new Error(
+          "Acesso negado: Esta conta não possui perfil de barbeiro."
+        );
+      }
+
+      // 4. Sucesso total
+      navigate("/dashboard/barber");
+    } catch (error) {
+      console.error("Erro no login:", error.message);
       alert(error.message);
+    } finally {
+      // O finally garante que o botão pare de carregar independente do resultado
       setLoading(false);
-      return;
     }
-
-    // 🔽 BUSCAR PROFILE APÓS LOGIN
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    if (profileError) {
-      alert("Erro ao carregar perfil do usuário");
-      setLoading(false);
-      return;
-    }
-
-    if (profile.role !== "barber") {
-      alert("Esta conta não é de barbeiro");
-      await supabase.auth.signOut();
-      setLoading(false);
-      return;
-    }
-
-    // ✅ LOGIN COMPLETO
-    navigate("/dashboard/barber");
-    setLoading(false);
   }
 
   return (
@@ -60,13 +72,16 @@ export default function BarberLogin() {
         onSubmit={handleLogin}
         className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-4 shadow-xl"
       >
-        <h1 className="text-xl font-semibold text-zinc-100 p-3">
-          Login da Barbearia
-        </h1>
+        <div className="flex flex-col gap-1 mb-2">
+          <h1 className="text-xl font-bold text-zinc-100">Login Barbeiro</h1>
+          <p className="text-sm text-zinc-500">
+            Acesse seu painel administrativo
+          </p>
+        </div>
 
         <InputRegister
           type="email"
-          placeholder="Email"
+          placeholder="Seu email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -74,7 +89,7 @@ export default function BarberLogin() {
 
         <InputRegister
           type="password"
-          placeholder="Senha"
+          placeholder="Sua senha"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -83,9 +98,35 @@ export default function BarberLogin() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium py-3 rounded-lg transition disabled:opacity-50"
+          className="w-full mt-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg
+                className="animate-spin h-5 w-5 text-zinc-950"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Entrando...
+            </span>
+          ) : (
+            "Acessar Painel"
+          )}
         </button>
       </form>
     </section>
