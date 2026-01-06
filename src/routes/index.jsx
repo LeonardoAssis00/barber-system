@@ -21,6 +21,7 @@ import BookingPage from "../agendar/BookingPage";
 
 // Route Guard
 import ProtectedRoute from "./ProtectedRoute";
+import MyBookings from "../agendar/MyBookings";
 
 export default function RoutesApp() {
   return (
@@ -41,6 +42,9 @@ export default function RoutesApp() {
 
       {/* Mostra barbearia pelo slug */}
       <Route path="/agendar/:slug" element={<BookingPage />} />
+
+      {/* Mostrar agendamentos */}
+      <Route path="/meus-agendamentos" element={<MyBookings />} />
 
       {/* ROTAS PROTEGIDAS */}
       <Route

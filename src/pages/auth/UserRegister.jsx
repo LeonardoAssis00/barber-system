@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import InputRegister from "../../components/InputRegister";
 import BackButton from "../../components/BackButton";
+import { useNavigate } from "react-router-dom";
 
 export default function UserRegister() {
   const [fullName, setFullName] = useState("");
@@ -9,6 +10,7 @@ export default function UserRegister() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   function normalizeSlug(value) {
     return value
@@ -53,7 +55,7 @@ export default function UserRegister() {
 
       const userId = authData.user.id;
 
-      // 3️⃣ Criar / garantir profile (UPSERT)
+      // 3️⃣ Criar profile (com RLS correta isso FUNCIONA)
       const { error: profileError } = await supabase.from("profiles").upsert(
         {
           id: userId,
@@ -64,7 +66,12 @@ export default function UserRegister() {
         { onConflict: "id" }
       );
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Erro profile:", profileError);
+        throw profileError;
+      }
+      // 4️⃣ Redirecionar direto para a barbearia
+      navigate(`/agendar/${finalSlug}`);
 
       alert("Conta criada! Verifique seu e-mail para confirmar.");
     } catch (err) {
