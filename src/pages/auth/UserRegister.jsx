@@ -4,76 +4,118 @@ import InputRegister from "../../components/InputRegister";
 import BackButton from "../../components/BackButton";
 
 export default function UserRegister() {
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function normalizeSlug(value) {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/^https?:\/\/[^/]+\/agendar\//, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]/g, "");
+  }
+
   async function handleRegister(e) {
     e.preventDefault();
-    setLoading(true);
 
-    // 1️⃣ Criar usuário no Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      alert(error.message);
-      setLoading(false);
+    if (!fullName || !slug || !email || !password) {
+      alert("Preencha todos os campos");
       return;
     }
 
-    // 2️⃣ Criar profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: data.user.id,
-      name,
-      role: "user",
-    });
+    setLoading(true);
+    const finalSlug = normalizeSlug(slug);
 
-    if (profileError) {
-      alert(profileError.message);
-    } else {
-      alert("Conta criada com sucesso! Verifique seu email.");
+    try {
+      // 1️⃣ Buscar barbearia
+      const { data: shop, error: shopError } = await supabase
+        .from("barber_shops")
+        .select("id")
+        .eq("slug", finalSlug)
+        .single();
+
+      if (shopError || !shop) {
+        throw new Error("Barbearia não encontrada");
+      }
+
+      // 2️⃣ Criar usuário
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Usuário não retornado");
+
+      const userId = authData.user.id;
+
+      // 3️⃣ Criar / garantir profile (UPSERT)
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          id: userId,
+          full_name: fullName,
+          role: "user",
+          barber_shop_id: shop.id,
+        },
+        { onConflict: "id" }
+      );
+
+      if (profileError) throw profileError;
+
+      alert("Conta criada! Verifique seu e-mail para confirmar.");
+    } catch (err) {
+      console.error("Erro no cadastro:", err);
+      alert(err.message || "Erro ao criar conta");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
-    <section className=" relative min-h-screen flex items-center justify-center bg-zinc-950">
+    <section className="relative min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="absolute top-6 left-6">
         <BackButton />
       </div>
 
       <form
         onSubmit={handleRegister}
-        className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-4 shadow-xl"
+        className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-4"
       >
-        <h1 className="text-zinc-100 font-bold p-3">Criar conta (Usuário)</h1>
+        <h1 className="text-zinc-100 font-bold">Criar conta</h1>
 
         <InputRegister
-          type="text"
-          placeholder="Nome"
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Seu nome completo"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
+
+        <InputRegister
+          placeholder="Cole o link ou slug da barbearia"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
         />
 
         <InputRegister
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <InputRegister
           type="password"
           placeholder="Senha"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           disabled={loading}
-          className="mt-4 bg-amber-600 hover:bg-amber-500 text-zinc-900 font-semibold py-3 rounded-lg transition-all duration-200"
+          className="mt-4 bg-amber-600 hover:bg-amber-500 text-zinc-900 font-semibold py-3 rounded-lg disabled:opacity-60"
         >
           {loading ? "Criando..." : "Cadastrar"}
         </button>

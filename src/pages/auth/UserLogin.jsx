@@ -14,18 +14,61 @@ export default function UserLogin() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // 1️⃣ Login
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      navigate("/dashboard/user");
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const userId = authData.user.id;
+
+      // 2️⃣ Buscar profile (criado pela trigger)
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role, barber_shop_id")
+        .eq("id", userId)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error("Perfil não encontrado");
+      }
+
+      // 3️⃣ Validações de regra de negócio
+      if (profile.role !== "user") {
+        throw new Error("Este login é apenas para usuários");
+      }
+
+      if (!profile.barber_shop_id) {
+        throw new Error("Usuário não está vinculado a nenhuma barbearia");
+      }
+
+      // 4️⃣ Buscar slug da barbearia
+      const { data: shop, error: shopError } = await supabase
+        .from("barber_shops")
+        .select("slug")
+        .eq("id", profile.barber_shop_id)
+        .single();
+
+      if (shopError || !shop) {
+        throw new Error("Barbearia não encontrada");
+      }
+
+      // 5️⃣ Redirecionar
+      navigate(`/agendar/${shop.slug}`);
+    } catch (err) {
+      console.error("Erro no login:", err);
+      alert(err.message || "Erro ao entrar");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -45,12 +88,14 @@ export default function UserLogin() {
         <InputRegister
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <InputRegister
           type="password"
           placeholder="Senha"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 

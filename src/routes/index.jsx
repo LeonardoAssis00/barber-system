@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import PublicRoute from "./PublicRoute";
 
 // Home
 import Home from "../pages/Home";
@@ -16,6 +15,9 @@ import LoginChoice from "../pages/auth/LoginChoice";
 // Dashboards
 import DashboardUser from "../pages/dashboard/user/DashBoardUser";
 import DashboardBarber from "../pages/dashboard/barber/DashBoardBarber";
+
+//Agendar
+import BookingPage from "../agendar/BookingPage";
 
 // Route Guard
 import ProtectedRoute from "./ProtectedRoute";
@@ -36,6 +38,9 @@ export default function RoutesApp() {
       {/* Login */}
       <Route path="/login/user" element={<UserLogin />} />
       <Route path="/login/barber" element={<BarberLogin />} />
+
+      {/* Mostra barbearia pelo slug */}
+      <Route path="/agendar/:slug" element={<BookingPage />} />
 
       {/* ROTAS PROTEGIDAS */}
       <Route
