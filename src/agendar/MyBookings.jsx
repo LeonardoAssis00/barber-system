@@ -1,21 +1,15 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { AuthContext } from "../context/AuthContext";
-import BackButton from "../components/BackButton";
 
 export default function MyBookings() {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login/user");
-      return;
-    }
+    if (!user) return;
 
     async function loadBookings() {
       const { data, error } = await supabase
@@ -34,7 +28,7 @@ export default function MyBookings() {
         .order("date", { ascending: true });
 
       if (error) {
-        console.error(error);
+        console.error("Erro ao buscar agendamentos:", error);
       }
 
       setBookings(data || []);
@@ -42,59 +36,63 @@ export default function MyBookings() {
     }
 
     loadBookings();
-  }, [user, navigate]);
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="text-sm text-zinc-400">
+        Faça login para visualizar seus agendamentos.
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-zinc-400">
-        Carregando agendamentos...
+      <div className="text-sm text-zinc-400">Carregando agendamentos...</div>
+    );
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <div className="border border-zinc-800 rounded-lg p-4 text-sm text-zinc-400">
+        Você ainda não possui agendamentos.
       </div>
     );
   }
 
   return (
-    <section className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
-      <div className="absolute top-6 left-6">
-        <BackButton />
-      </div>
-      <div className="max-w-xl mx-auto space-y-6">
-        <h1 className="text-2xl font-semibold">Meus agendamentos</h1>
-
-        {bookings.length === 0 && (
-          <p className="text-zinc-500 text-sm">
-            Você ainda não possui agendamentos.
-          </p>
-        )}
-
-        {bookings.map((booking) => (
-          <div
-            key={booking.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-2"
-          >
-            <p className="font-medium">{booking.barber_shops?.name}</p>
-
-            <p className="text-sm text-zinc-400">
-              Serviço: {booking.services?.name}
-            </p>
-
-            <p className="text-sm text-zinc-400">
-              Data: {booking.date} às {booking.time}
+    <div className="space-y-4">
+      {bookings.map((booking) => (
+        <div
+          key={booking.id}
+          className="border border-zinc-800 rounded-xl p-4 bg-zinc-900 flex flex-col gap-2"
+        >
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-zinc-100">
+              {booking.barber_shops?.name}
             </p>
 
             <span
-              className={`inline-block px-3 py-1 text-xs rounded-full ${
+              className={`px-3 py-1 text-xs rounded-full font-medium ${
                 booking.status === "confirmed"
-                  ? "bg-green-600 text-green-100"
+                  ? "bg-green-600/20 text-green-400"
                   : booking.status === "canceled"
-                  ? "bg-red-600 text-red-100"
+                  ? "bg-red-600/20 text-red-400"
                   : "bg-zinc-700 text-zinc-200"
               }`}
             >
               {booking.status}
             </span>
           </div>
-        ))}
-      </div>
-    </section>
+
+          <div className="text-sm text-zinc-400">
+            <p>Serviço: {booking.services?.name}</p>
+            <p>
+              Data: {booking.date} às {booking.time}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

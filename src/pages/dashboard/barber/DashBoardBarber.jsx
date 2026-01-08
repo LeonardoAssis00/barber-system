@@ -11,22 +11,26 @@ import BookingList from "../../../components/barber/BookingList";
 
 export default function DashboardBarber() {
   const { signOut, profile } = useContext(AuthContext);
+
   const [activeTab, setActiveTab] = useState("home");
+
   const [services, setServices] = useState([]);
   const [agenda, setAgenda] = useState([]);
-  const [loadingServices, setLoadingServices] = useState(true);
-  const [loadingAgenda, setLoadingAgenda] = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
 
-  // Extração da barbearia
+  // Barbearia do barbeiro logado
   const shop = profile?.barber_shops?.[0];
 
-  // --- BUSCAR SERVIÇOS E AGENDA DO SUPABASE ---
+  // =========================
+  // BUSCAR DADOS DO SUPABASE
+  // =========================
   useEffect(() => {
     async function fetchData() {
       if (!shop?.id) return;
 
       try {
-        // Busca Serviços
+        // SERVIÇOS
         const { data: servicesData } = await supabase
           .from("services")
           .select("*")
@@ -35,7 +39,7 @@ export default function DashboardBarber() {
 
         setServices(servicesData || []);
 
-        // Busca Horários da Agenda
+        // AGENDA
         const { data: agendaData } = await supabase
           .from("barber_slots")
           .select("*")
@@ -43,18 +47,45 @@ export default function DashboardBarber() {
           .order("start_time", { ascending: true });
 
         setAgenda(agendaData || []);
+
+        // AGENDAMENTOS
+        const { data: bookingsData, error } = await supabase
+          .from("bookings")
+          .select(
+            `
+            id,
+            date,
+            time,
+            status,
+            services:service_id (
+              name,
+              price
+            ),
+            profiles:client_id (
+              full_name
+            )
+          `
+          )
+          .eq("barber_shop_id", shop.id)
+          .order("date", { ascending: true })
+          .order("time", { ascending: true });
+
+        if (!error) {
+          setBookings(bookingsData || []);
+        }
       } catch (error) {
-        console.error("Erro ao carregar dados:", error.message);
+        console.error("Erro geral:", error.message);
       } finally {
-        setLoadingServices(false);
-        setLoadingAgenda(false);
+        setLoadingBookings(false);
       }
     }
 
     fetchData();
   }, [shop?.id]);
 
-  // Funções de manipulação de Serviços
+  // =========================
+  // HANDLERS
+  // =========================
   function handleAddService(newService) {
     setServices((prev) => [...prev, newService]);
   }
@@ -63,7 +94,6 @@ export default function DashboardBarber() {
     setServices((prev) => prev.filter((s) => s.id !== id));
   }
 
-  // Funções de manipulação de Agenda
   function handleAddSlot(newSlot) {
     setAgenda((prev) => [...prev, newSlot]);
   }
@@ -72,27 +102,21 @@ export default function DashboardBarber() {
     setAgenda((prev) => prev.filter((a) => a.id !== id));
   }
 
-  const [bookings] = useState([
-    {
-      id: "1",
-      client: "João Silva",
-      service: "Corte de cabelo",
-      price: 25,
-      date: "2025-01-23",
-      time: "10:00",
-    },
-  ]);
-
+  // =========================
+  // LINK PÚBLICO
+  // =========================
   const publicUrl = shop
     ? `${window.location.origin}/agendar/${shop.slug}`
     : "";
 
   function handleCopyLink() {
-    if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl);
     alert("Link da barbearia copiado!");
   }
 
+  // =========================
+  // RENDER
+  // =========================
   return (
     <section className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
       <header className="flex items-center justify-between mb-8">
@@ -114,6 +138,7 @@ export default function DashboardBarber() {
         </button>
       </header>
 
+      {/* NAV */}
       <nav className="flex gap-6 border-b border-zinc-800 mb-8 overflow-x-auto">
         {[
           { key: "home", label: "Visão Geral" },
@@ -124,7 +149,7 @@ export default function DashboardBarber() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`pb-3 text-sm font-medium whitespace-nowrap transition ${
+            className={`pb-3 text-sm font-medium transition ${
               activeTab === tab.key
                 ? "text-amber-500 border-b-2 border-amber-500"
                 : "text-zinc-400 hover:text-zinc-200"
@@ -136,74 +161,64 @@ export default function DashboardBarber() {
       </nav>
 
       <main className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        {activeTab === "home" && (
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium mb-2">Resumo do dia</h2>
-            {shop ? (
-              <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                    Seu link de agendamento
-                  </span>
-                  <div className="flex gap-2">
-                    <a
-                      href={publicUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-2 text-zinc-400 hover:text-amber-500 transition"
-                    >
-                      <ExternalLink size={18} />
-                    </a>
-                    <button
-                      onClick={handleCopyLink}
-                      className="p-2 text-zinc-400 hover:text-amber-500 transition"
-                    >
-                      <Copy size={18} />
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-zinc-950 p-3 rounded border border-zinc-800 select-all overflow-x-auto">
-                  <p className="text-amber-500 font-mono text-sm">
-                    {publicUrl}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p>Carregando barbearia...</p>
-            )}
+        {activeTab === "home" && shop && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Link público da barbearia</h2>
+
+            <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-lg p-3">
+              <input
+                type="text"
+                value={publicUrl}
+                readOnly
+                className="flex-1 bg-transparent text-sm text-zinc-300 outline-none"
+              />
+
+              <button
+                onClick={handleCopyLink}
+                className="p-2 hover:bg-zinc-700 rounded-md"
+              >
+                <Copy size={18} />
+              </button>
+
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-zinc-700 rounded-md"
+              >
+                <ExternalLink size={18} />
+              </a>
+            </div>
+
+            <p className="text-xs text-zinc-400">
+              Envie este link para seus clientes agendarem online.
+            </p>
           </div>
         )}
 
         {activeTab === "services" && (
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium">Gerenciar Serviços</h2>
+          <>
             <ServiceForm barberShopId={shop?.id} onAdd={handleAddService} />
-            {loadingServices ? (
-              <p className="text-zinc-500 text-sm">Carregando serviços...</p>
-            ) : (
-              <ServiceList services={services} onDelete={handleDeleteService} />
-            )}
-          </div>
+            <ServiceList services={services} onDelete={handleDeleteService} />
+          </>
         )}
 
         {activeTab === "agenda" && (
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium">Horários de Funcionamento</h2>
-            {/* AgendaForm agora recebe o shopId e a função de adicionar */}
+          <>
             <AgendaForm barberShopId={shop?.id} onAdd={handleAddSlot} />
-
-            {loadingAgenda ? (
-              <p className="text-zinc-500 text-sm">Carregando agenda...</p>
-            ) : (
-              <AgendaList agenda={agenda} onDelete={handleDeleteSlot} />
-            )}
-          </div>
+            <AgendaList agenda={agenda} onDelete={handleDeleteSlot} />
+          </>
         )}
 
         {activeTab === "bookings" && (
           <>
-            <h2 className="text-lg font-medium mb-4">Agendamentos</h2>
-            <BookingList bookings={bookings} />
+            {loadingBookings ? (
+              <p className="text-zinc-500 text-sm">
+                Carregando agendamentos...
+              </p>
+            ) : (
+              <BookingList bookings={bookings} />
+            )}
           </>
         )}
       </main>

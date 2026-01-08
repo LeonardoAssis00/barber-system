@@ -3,16 +3,27 @@ import { useEffect, useState, useContext } from "react";
 import { supabase } from "../lib/supabase";
 import { AuthContext } from "../context/AuthContext";
 import { LogOut } from "lucide-react";
+import MyBookings from "../agendar/MyBookings";
 
 const weekLabels = {
-  sunday: "Dom",
   monday: "Seg",
   tuesday: "Ter",
   wednesday: "Qua",
   thursday: "Qui",
   friday: "Sex",
   saturday: "Sáb",
+  sunday: "Dom",
 };
+
+const weekOrder = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
 
 export default function BookingPage() {
   const { slug } = useParams();
@@ -27,49 +38,48 @@ export default function BookingPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedTime, setSelectedTime] = useState(null);
 
-  // Função de logout
+  const [confirming, setConfirming] = useState(false);
+  const [loadingConfirm, setLoadingConfirm] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("booking");
+
   async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Erro ao sair:", error.message);
-      return;
-    }
-    navigate("/login"); // redireciona após logout
+    await supabase.auth.signOut();
+    navigate("/login");
   }
 
+  /* ================= LOAD DATA ================= */
   useEffect(() => {
     async function loadData() {
-      // 1️⃣ Buscar barbearia pelo slug
-      const { data: shopData, error: shopError } = await supabase
+      const { data: shopData } = await supabase
         .from("barber_shops")
         .select("*")
         .eq("slug", slug)
         .single();
 
-      if (shopError || !shopData) {
+      if (!shopData) {
         setLoading(false);
         return;
       }
 
       setShop(shopData);
 
-      // 2️⃣ Buscar serviços da barbearia
       const { data: servicesData } = await supabase
         .from("services")
         .select("*")
         .eq("barber_shop_id", shopData.id)
         .order("created_at");
 
-      setServices(servicesData || []);
-
-      // 3️⃣ Buscar slots do barbeiro
       const { data: slotsData } = await supabase
         .from("barber_slots")
         .select("*")
-        .eq("barber_shop_id", shopData.id);
+        .eq("barber_shop_id", shopData.id)
+        .order("start_time");
 
+      setServices(servicesData || []);
       setSlots(slotsData || []);
       setLoading(false);
     }
@@ -77,14 +87,13 @@ export default function BookingPage() {
     loadData();
   }, [slug]);
 
+  /* ================= LOAD BOOKINGS ================= */
   async function loadBookings(date) {
-    if (!shop) return;
-
-    setSelectedDate(date);
+    if (!shop?.id) return;
 
     const { data } = await supabase
       .from("bookings")
-      .select("time, status")
+      .select("time")
       .eq("barber_shop_id", shop.id)
       .eq("date", date)
       .neq("status", "canceled");
@@ -92,8 +101,11 @@ export default function BookingPage() {
     setBookings(data || []);
   }
 
+  /* ================= SELECT DAY ================= */
   function handleSelectDay(day) {
     setSelectedDay(day);
+    setSelectedTime(null);
+    setConfirming(false);
 
     const today = new Date();
     const target = new Date(today);
@@ -105,29 +117,60 @@ export default function BookingPage() {
       target.setDate(target.getDate() + 1);
     }
 
-    const formatted = target.toISOString().split("T")[0];
-    loadBookings(formatted);
+    const formattedDate = target.toISOString().split("T")[0];
+    setSelectedDate(formattedDate);
+
+    loadBookings(formattedDate);
   }
 
+  /* ================= SELECT TIME (NO SAVE) ================= */
   function handleSelectTime(time) {
     if (!user) {
       navigate(`/login/user?redirect=/agendar/${slug}`);
       return;
     }
 
-    if (!selectedService) {
-      alert("Selecione um serviço");
+    setSelectedTime(time);
+    setConfirming(true);
+  }
+
+  /* ================= CONFIRM BOOKING ================= */
+  async function handleConfirmBooking() {
+    if (!selectedService || !selectedDate || !selectedTime) {
+      alert("Selecione serviço, dia e horário");
       return;
     }
 
-    alert(
-      `Agendamento:\n${selectedService.name}\n${weekLabels[selectedDay]} (${selectedDate}) - ${time}`
-    );
+    setLoadingConfirm(true);
+
+    const { error } = await supabase.from("bookings").insert({
+      barber_shop_id: shop.id,
+      service_id: selectedService.id,
+      client_id: user.id,
+      date: selectedDate,
+      time: selectedTime,
+      status: "confirmed",
+    });
+
+    setLoadingConfirm(false);
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao confirmar agendamento");
+      return;
+    }
+
+    alert("Agendamento confirmado com sucesso!");
+
+    setSelectedTime(null);
+    setConfirming(false);
+    loadBookings(selectedDate);
   }
 
+  /* ================= UI ================= */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-zinc-400">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">
         Carregando...
       </div>
     );
@@ -141,102 +184,168 @@ export default function BookingPage() {
     );
   }
 
-  const availableDays = [...new Set(slots.map((s) => s.day_of_week))];
+  const availableDays = weekOrder.filter((day) =>
+    slots.some((s) => s.day_of_week === day)
+  );
+
   const daySlots = slots.filter((s) => s.day_of_week === selectedDay);
   const bookedTimes = bookings.map((b) => b.time);
 
   return (
-    <section className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
-      <div className="max-w-xl mx-auto space-y-6">
-        {/* Header com botões */}
-        <div className="flex items-center justify-between">
+    <section className="min-h-screen bg-zinc-950 text-zinc-100">
+      {/* HEADER */}
+      <header className="px-6 py-6 flex items-center justify-between">
+        <div>
           <h1 className="text-2xl font-semibold">{shop.name}</h1>
-
-          <div className="flex gap-2">
-            {user && (
-              <>
-                <button
-                  onClick={() => navigate("/meus-agendamentos")}
-                  className="text-sm bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg"
-                >
-                  Meus agendamentos
-                </button>
-
-                <button
-                  onClick={signOut}
-                  className="flex items-center gap-1 text-sm bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
-                >
-                  <LogOut size={16} />
-                  Sair
-                </button>
-              </>
-            )}
-          </div>
+          <p className="text-zinc-400">
+            Escolha um serviço e um horário disponível
+          </p>
         </div>
 
-        {/* Serviços */}
-        <div className="space-y-2">
-          {services.map((service) => (
-            <button
-              key={service.id}
-              onClick={() => setSelectedService(service)}
-              className={`w-full p-4 rounded-lg border text-left ${
-                selectedService?.id === service.id
-                  ? "border-amber-500 bg-zinc-800"
-                  : "border-zinc-800 bg-zinc-900"
-              }`}
-            >
-              <div className="flex justify-between">
-                <span>{service.name}</span>
-                <span className="text-amber-500">R$ {service.price}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Dias */}
-        {selectedService && (
-          <div className="flex gap-2 overflow-x-auto">
-            {availableDays.map((day) => (
-              <button
-                key={day}
-                onClick={() => handleSelectDay(day)}
-                className={`px-4 py-2 rounded-lg text-sm ${
-                  selectedDay === day
-                    ? "bg-amber-500 text-black"
-                    : "bg-zinc-800 text-zinc-300"
-                }`}
-              >
-                {weekLabels[day]}
-              </button>
-            ))}
-          </div>
+        {user && (
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 text-zinc-400 hover:text-red-400"
+          >
+            <LogOut size={18} />
+            Sair
+          </button>
         )}
+      </header>
 
-        {/* Horários */}
-        {selectedDay && (
-          <div className="grid grid-cols-3 gap-3">
-            {daySlots.map((slot) => {
-              const isBooked = bookedTimes.includes(slot.start_time);
+      {/* NAV */}
+      <nav className="px-6 flex gap-6 border-b border-zinc-800 mb-8">
+        <button
+          onClick={() => setActiveTab("booking")}
+          className={`pb-3 text-sm font-medium ${
+            activeTab === "booking"
+              ? "text-amber-500 border-b-2 border-amber-500"
+              : "text-zinc-400"
+          }`}
+        >
+          Agendar
+        </button>
 
-              return (
+        {user && (
+          <button
+            onClick={() => setActiveTab("myBookings")}
+            className={`pb-3 text-sm font-medium ${
+              activeTab === "myBookings"
+                ? "text-amber-500 border-b-2 border-amber-500"
+                : "text-zinc-400"
+            }`}
+          >
+            Meus agendamentos
+          </button>
+        )}
+      </nav>
+
+      {/* CONTENT */}
+      <main className="max-w-xl mx-auto px-4 pb-10">
+        {activeTab === "booking" && (
+          <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6">
+            {/* Serviços */}
+            <div className="space-y-3">
+              <h2 className="text-lg font-medium">Serviços</h2>
+
+              {services.map((service) => (
                 <button
-                  key={slot.id}
-                  disabled={isBooked}
-                  onClick={() => handleSelectTime(slot.start_time)}
-                  className={`py-2 rounded-lg text-sm font-medium ${
-                    isBooked
-                      ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                      : "bg-amber-600 hover:bg-amber-500 text-black"
+                  key={service.id}
+                  onClick={() => {
+                    setSelectedService(service);
+                    setSelectedDay(null);
+                    setSelectedTime(null);
+                    setConfirming(false);
+                  }}
+                  className={`w-full p-4 rounded-lg border ${
+                    selectedService?.id === service.id
+                      ? "border-amber-500 bg-zinc-800"
+                      : "border-zinc-800 bg-zinc-950"
                   }`}
                 >
-                  {slot.start_time}
+                  <div className="flex justify-between">
+                    <span>{service.name}</span>
+                    <span className="text-amber-500">R$ {service.price}</span>
+                  </div>
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+
+            {/* Dias */}
+            {selectedService && (
+              <div className="space-y-2">
+                <h2 className="text-lg font-medium">Dias disponíveis</h2>
+                <div className="flex gap-2">
+                  {availableDays.map((day) => (
+                    <button
+                      key={day}
+                      onClick={() => handleSelectDay(day)}
+                      className={`px-4 py-2 rounded-lg ${
+                        selectedDay === day
+                          ? "bg-amber-500 text-black"
+                          : "bg-zinc-800 text-zinc-400"
+                      }`}
+                    >
+                      {weekLabels[day]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Horários */}
+            {selectedDay && (
+              <div className="space-y-2">
+                <h2 className="text-lg font-medium">Horários</h2>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {daySlots.map((slot) => {
+                    const isBooked = bookedTimes.includes(slot.start_time);
+
+                    return (
+                      <button
+                        key={slot.id}
+                        disabled={isBooked}
+                        onClick={() => handleSelectTime(slot.start_time)}
+                        className={`py-2 rounded-lg ${
+                          isBooked
+                            ? "bg-zinc-800 text-zinc-500"
+                            : "bg-amber-600 text-black"
+                        }`}
+                      >
+                        {slot.start_time.slice(0, 5)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* CONFIRMAÇÃO */}
+            {confirming && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 space-y-3">
+                <p className="text-sm text-zinc-300">Confirmar agendamento?</p>
+
+                <p className="text-xs text-zinc-400">
+                  Serviço: {selectedService.name} <br />
+                  Data: {selectedDate} <br />
+                  Horário: {selectedTime}
+                </p>
+
+                <button
+                  onClick={handleConfirmBooking}
+                  disabled={loadingConfirm}
+                  className="w-full bg-amber-500 text-black py-2 rounded-md font-medium hover:bg-amber-400 transition"
+                >
+                  {loadingConfirm ? "Confirmando..." : "Confirmar"}
+                </button>
+              </div>
+            )}
+          </section>
         )}
-      </div>
+
+        {activeTab === "myBookings" && <MyBookings />}
+      </main>
     </section>
   );
 }

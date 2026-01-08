@@ -1,5 +1,5 @@
 export default function BookingList({ bookings }) {
-  if (bookings.length === 0) {
+  if (!bookings || bookings.length === 0) {
     return (
       <p className="text-zinc-400 text-sm">Nenhum agendamento para hoje.</p>
     );
@@ -13,14 +13,17 @@ export default function BookingList({ bookings }) {
           className="flex justify-between items-center bg-zinc-800 border border-zinc-700 rounded-lg p-4"
         >
           <div>
-            <p className="font-medium">{booking.client}</p>
+            <p className="font-medium">
+              {booking.profiles?.full_name || "Cliente"}
+            </p>
+
             <p className="text-sm text-zinc-400">
-              {booking.service} • {booking.time}
+              {booking.services?.name} • {booking.time}
             </p>
           </div>
 
           <span className="text-amber-500 font-medium">
-            R$ {booking.price.toFixed(2)}
+            R$ {booking.services?.price?.toFixed(2)}
           </span>
         </li>
       ))}
