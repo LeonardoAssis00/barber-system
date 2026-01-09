@@ -57,12 +57,10 @@ export default function DashboardBarber() {
             date,
             time,
             status,
+            client_name,
             services:service_id (
               name,
               price
-            ),
-            profiles:client_id (
-              full_name
             )
           `
           )

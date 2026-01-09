@@ -28,7 +28,7 @@ const weekOrder = [
 export default function BookingPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, profile } = useContext(AuthContext);
 
   const [shop, setShop] = useState(null);
   const [services, setServices] = useState([]);
@@ -134,7 +134,28 @@ export default function BookingPage() {
     setConfirming(true);
   }
 
+  async function getClientName(userId) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .single();
+
+    if (error || !data?.full_name) {
+      console.error("Nome do cliente não encontrado:", error);
+      return null;
+    }
+
+    return data?.full_name;
+  }
+
   /* ================= CONFIRM BOOKING ================= */
+  function formatName(name) {
+    if (!name) return null;
+
+    return name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
   async function handleConfirmBooking() {
     if (!selectedService || !selectedDate || !selectedTime) {
       alert("Selecione serviço, dia e horário");
@@ -142,6 +163,8 @@ export default function BookingPage() {
     }
 
     setLoadingConfirm(true);
+    const rawClientName = await getClientName(user.id);
+    const clientName = formatName(rawClientName);
 
     const { error } = await supabase.from("bookings").insert({
       barber_shop_id: shop.id,
@@ -150,6 +173,7 @@ export default function BookingPage() {
       date: selectedDate,
       time: selectedTime,
       status: "confirmed",
+      client_name: clientName,
     });
 
     setLoadingConfirm(false);
@@ -196,7 +220,12 @@ export default function BookingPage() {
       {/* HEADER */}
       <header className="px-6 py-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{shop.name}</h1>
+          <h1 className="text-2xl font-semibold">
+            <h1 className="text-2xl font-semibold">
+              {formatName(profile?.full_name) || "Cliente"}
+            </h1>
+          </h1>
+
           <p className="text-zinc-400">
             Escolha um serviço e um horário disponível
           </p>

@@ -2,6 +2,22 @@ import { useEffect, useState, useContext } from "react";
 import { supabase } from "../lib/supabase";
 import { AuthContext } from "../context/AuthContext";
 
+function formatDate(date) {
+  if (!date) return "";
+
+  return new Date(date).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  });
+}
+
+function formatTime(time) {
+  if (!time) return "";
+
+  return time.slice(0, 5); // HH:MM
+}
+
 export default function MyBookings() {
   const { user } = useContext(AuthContext);
 
@@ -88,7 +104,7 @@ export default function MyBookings() {
           <div className="text-sm text-zinc-400">
             <p>Serviço: {booking.services?.name}</p>
             <p>
-              Data: {booking.date} às {booking.time}
+              Data: {formatDate(booking.date)} às {formatTime(booking.time)}
             </p>
           </div>
         </div>
