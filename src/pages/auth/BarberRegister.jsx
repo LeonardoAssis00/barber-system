@@ -35,47 +35,66 @@ export default function BarberRegister() {
     setLoading(true);
 
     try {
-      // 1. PRÉ-VERIFICAÇÃO: Evita erro 500 verificando se o slug já existe
+      // 1. Verifica se a slug já existe
       const { data: existingShop, error: checkError } = await supabase
         .from("barber_shops")
-        .select("slug")
+        .select("id")
         .eq("slug", finalSlug)
         .maybeSingle();
 
-      if (checkError) throw new Error("Erro ao validar link único.");
+      if (checkError) throw checkError;
 
       if (existingShop) {
-        alert(
-          "Este link já está em uso. Escolha outro nome para sua barbearia."
-        );
+        alert("Este link já está em uso. Escolha outro.");
         setLoading(false);
         return;
       }
 
-      // 2. SIGNUP: Envia os dados para o Auth e para o Trigger do banco
-      const { error: authError } = await supabase.auth.signUp({
+      // 2. Cria usuário no Auth
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name: name.trim(),
+            full_name: name.trim(),
             role: "barber",
-            shop_name: shopName.trim(),
-            slug: finalSlug,
           },
         },
       });
 
       if (authError) throw authError;
 
-      // 3. SUCESSO
-      alert(
-        "Conta e Barbearia criadas! Verifique seu e-mail para confirmar o acesso."
-      );
+      const userId = data.user.id;
+
+      // 3. Cria a barbearia
+      const { data: shop, error: shopError } = await supabase
+        .from("barber_shops")
+        .insert({
+          name: shopName.trim(),
+          slug: finalSlug,
+          owner_id: userId,
+        })
+        .select()
+        .single();
+
+      if (shopError) throw shopError;
+
+      // 4. Atualiza o profile com a barbearia
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          barber_shop_id: shop.id,
+        })
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
+      // 5. Sucesso
+      alert("Barbearia criada com sucesso! Verifique seu e-mail.");
       navigate("/login");
     } catch (error) {
       console.error("Erro no cadastro:", error);
-      alert(error.message || "Ocorreu um erro inesperado.");
+      alert("Erro ao criar barbearia. Tente novamente.");
     } finally {
       setLoading(false);
     }

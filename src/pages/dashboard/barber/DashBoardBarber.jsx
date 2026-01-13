@@ -123,7 +123,7 @@ export default function DashboardBarber() {
             {shop ? shop.name : "Dashboard da Barbearia"}
           </h1>
           <p className="text-zinc-400">
-            Olá, {profile?.full_name || "Barbeiro"}! Gerencie seu negócio.
+            Olá, {shop ? shop.name : "Barbeiro"}! Gerencie seu negócio.
           </p>
         </div>
 
