@@ -25,6 +25,24 @@ const weekOrder = [
   "sunday",
 ];
 
+// MAPA CORRETO DOS DIAS DA SEMANA
+const weekDayMap = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+};
+
+// FORMATAR DATA PARA BR (DD/MM/YYYY)
+function formatDateBR(dateString) {
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export default function BookingPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -101,29 +119,30 @@ export default function BookingPage() {
     setBookings(data || []);
   }
 
-  /* ================= SELECT DAY ================= */
+  /* ================= SELECT DAY (CORRETO, SEM UTC) ================= */
   function handleSelectDay(day) {
     setSelectedDay(day);
     setSelectedTime(null);
     setConfirming(false);
 
     const today = new Date();
-    const target = new Date(today);
+    const todayWeekDay = today.getDay();
+    const targetWeekDay = weekDayMap[day];
 
-    while (
-      target.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() !==
-      day
-    ) {
-      target.setDate(target.getDate() + 1);
-    }
+    let diff = targetWeekDay - todayWeekDay;
+    if (diff < 0) diff += 7;
 
-    const formattedDate = target.toISOString().split("T")[0];
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + diff);
+
+    // ✅ SEM toISOString (bug de UTC removido)
+    const formattedDate = targetDate.toLocaleDateString("en-CA");
+
     setSelectedDate(formattedDate);
-
     loadBookings(formattedDate);
   }
 
-  /* ================= SELECT TIME (NO SAVE) ================= */
+  /* ================= SELECT TIME ================= */
   function handleSelectTime(time) {
     if (!user) {
       navigate(`/login/user?redirect=/agendar/${slug}`);
@@ -135,27 +154,21 @@ export default function BookingPage() {
   }
 
   async function getClientName(userId) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .select("full_name")
       .eq("id", userId)
       .single();
 
-    if (error || !data?.full_name) {
-      console.error("Nome do cliente não encontrado:", error);
-      return null;
-    }
-
-    return data?.full_name;
+    return data?.full_name || null;
   }
 
-  /* ================= CONFIRM BOOKING ================= */
   function formatName(name) {
     if (!name) return null;
-
     return name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
+  /* ================= CONFIRM BOOKING ================= */
   async function handleConfirmBooking() {
     if (!selectedService || !selectedDate || !selectedTime) {
       alert("Selecione serviço, dia e horário");
@@ -179,13 +192,11 @@ export default function BookingPage() {
     setLoadingConfirm(false);
 
     if (error) {
-      console.error(error);
       alert("Erro ao confirmar agendamento");
       return;
     }
 
     alert("Agendamento confirmado com sucesso!");
-
     setSelectedTime(null);
     setConfirming(false);
     loadBookings(selectedDate);
@@ -217,15 +228,11 @@ export default function BookingPage() {
 
   return (
     <section className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* HEADER */}
       <header className="px-6 py-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
-            <h1 className="text-2xl font-semibold">
-              {formatName(profile?.full_name) || "Cliente"}
-            </h1>
+            {formatName(profile?.full_name) || "Cliente"}
           </h1>
-
           <p className="text-zinc-400">
             Escolha um serviço e um horário disponível
           </p>
@@ -242,7 +249,6 @@ export default function BookingPage() {
         )}
       </header>
 
-      {/* NAV */}
       <nav className="px-6 flex gap-6 border-b border-zinc-800 mb-8">
         <button
           onClick={() => setActiveTab("booking")}
@@ -269,7 +275,6 @@ export default function BookingPage() {
         )}
       </nav>
 
-      {/* CONTENT */}
       <main className="max-w-xl mx-auto px-4 pb-10">
         {activeTab === "booking" && (
           <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6">
@@ -326,7 +331,6 @@ export default function BookingPage() {
             {selectedDay && (
               <div className="space-y-2">
                 <h2 className="text-lg font-medium">Horários</h2>
-
                 <div className="grid grid-cols-3 gap-3">
                   {daySlots.map((slot) => {
                     const isBooked = bookedTimes.includes(slot.start_time);
@@ -357,7 +361,7 @@ export default function BookingPage() {
 
                 <p className="text-xs text-zinc-400">
                   Serviço: {selectedService.name} <br />
-                  Data: {selectedDate} <br />
+                  Data: {formatDateBR(selectedDate)} <br />
                   Horário: {selectedTime}
                 </p>
 

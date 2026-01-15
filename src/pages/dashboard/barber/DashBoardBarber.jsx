@@ -30,7 +30,6 @@ export default function DashboardBarber() {
       if (!shop?.id) return;
 
       try {
-        // SERVIÇOS
         const { data: servicesData } = await supabase
           .from("services")
           .select("*")
@@ -39,7 +38,6 @@ export default function DashboardBarber() {
 
         setServices(servicesData || []);
 
-        // AGENDA
         const { data: agendaData } = await supabase
           .from("barber_slots")
           .select("*")
@@ -48,7 +46,6 @@ export default function DashboardBarber() {
 
         setAgenda(agendaData || []);
 
-        // AGENDAMENTOS
         const { data: bookingsData, error } = await supabase
           .from("bookings")
           .select(
@@ -101,6 +98,33 @@ export default function DashboardBarber() {
   }
 
   // =========================
+  // CANCELAR AGENDAMENTO (BARBEIRO)
+  // =========================
+  async function handleCancelBooking(bookingId) {
+    const confirmCancel = window.confirm(
+      "Tem certeza que deseja cancelar este agendamento?"
+    );
+
+    if (!confirmCancel) return;
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "canceled" })
+      .eq("id", bookingId)
+      .eq("barber_shop_id", shop.id);
+
+    if (error) {
+      console.error("Erro ao cancelar agendamento:", error);
+      return;
+    }
+
+    // Atualiza estado local
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: "canceled" } : b))
+    );
+  }
+
+  // =========================
   // LINK PÚBLICO
   // =========================
   const publicUrl = shop
@@ -136,7 +160,6 @@ export default function DashboardBarber() {
         </button>
       </header>
 
-      {/* NAV */}
       <nav className="flex gap-6 border-b border-zinc-800 mb-8 overflow-x-auto">
         {[
           { key: "home", label: "Visão Geral" },
@@ -187,10 +210,6 @@ export default function DashboardBarber() {
                 <ExternalLink size={18} />
               </a>
             </div>
-
-            <p className="text-xs text-zinc-400">
-              Envie este link para seus clientes agendarem online.
-            </p>
           </div>
         )}
 
@@ -215,7 +234,7 @@ export default function DashboardBarber() {
                 Carregando agendamentos...
               </p>
             ) : (
-              <BookingList bookings={bookings} />
+              <BookingList bookings={bookings} onCancel={handleCancelBooking} />
             )}
           </>
         )}

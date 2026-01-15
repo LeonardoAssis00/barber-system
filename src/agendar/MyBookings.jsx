@@ -4,18 +4,13 @@ import { AuthContext } from "../context/AuthContext";
 
 function formatDate(date) {
   if (!date) return "";
-
-  return new Date(date).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  });
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year.slice(2)}`;
 }
 
 function formatTime(time) {
   if (!time) return "";
-
-  return time.slice(0, 5); // HH:MM
+  return time.slice(0, 5);
 }
 
 export default function MyBookings() {
@@ -23,7 +18,9 @@ export default function MyBookings() {
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelingId, setCancelingId] = useState(null);
 
+  /* ================= LOAD BOOKINGS ================= */
   useEffect(() => {
     if (!user) return;
 
@@ -54,6 +51,42 @@ export default function MyBookings() {
     loadBookings();
   }, [user]);
 
+  /* ================= CANCEL BOOKING ================= */
+  async function handleCancel(bookingId) {
+    if (!window.confirm("Tem certeza que deseja cancelar este agendamento?")) {
+      return;
+    }
+
+    setCancelingId(bookingId);
+
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status: "canceled" })
+      .eq("id", bookingId)
+      .eq("client_id", user.id)
+      .select(); // 🔥 força retorno das linhas afetadas
+
+    if (error) {
+      console.error("Erro ao cancelar:", error);
+      alert("Erro ao cancelar agendamento");
+      setCancelingId(null);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      alert("Cancelamento não permitido (RLS)");
+      setCancelingId(null);
+      return;
+    }
+
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: "canceled" } : b))
+    );
+
+    setCancelingId(null);
+  }
+
+  /* ================= UI ================= */
   if (!user) {
     return (
       <div className="text-sm text-zinc-400">
@@ -92,9 +125,7 @@ export default function MyBookings() {
               className={`px-3 py-1 text-xs rounded-full font-medium ${
                 booking.status === "confirmed"
                   ? "bg-green-600/20 text-green-400"
-                  : booking.status === "canceled"
-                  ? "bg-red-600/20 text-red-400"
-                  : "bg-zinc-700 text-zinc-200"
+                  : "bg-red-600/20 text-red-400"
               }`}
             >
               {booking.status}
@@ -107,6 +138,18 @@ export default function MyBookings() {
               Data: {formatDate(booking.date)} às {formatTime(booking.time)}
             </p>
           </div>
+
+          {booking.status === "confirmed" && (
+            <button
+              onClick={() => handleCancel(booking.id)}
+              disabled={cancelingId === booking.id}
+              className="mt-2 self-start px-4 py-2 text-sm rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition disabled:opacity-50"
+            >
+              {cancelingId === booking.id
+                ? "Cancelando..."
+                : "Cancelar agendamento"}
+            </button>
+          )}
         </div>
       ))}
     </div>
