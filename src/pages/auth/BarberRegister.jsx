@@ -67,12 +67,20 @@ export default function BarberRegister() {
       const userId = data.user.id;
 
       // 3. Cria a barbearia
+
+      const trialStartedAt = new Date();
+      const trialEndsAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+
       const { data: shop, error: shopError } = await supabase
         .from("barber_shops")
         .insert({
           name: shopName.trim(),
           slug: finalSlug,
           owner_id: userId,
+          trial_started_at: trialStartedAt,
+          trial_ends_at: trialEndsAt,
+          is_paid: false,
+          is_active: true,
         })
         .select()
         .single();

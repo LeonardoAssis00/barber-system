@@ -51,7 +51,34 @@ export default function BarberLogin() {
         );
       }
 
-      // 4. Sucesso total
+      // 4. Buscar barbearia
+      const { data: shop, error: shopError } = await supabase
+        .from("barber_shops")
+        .select("trial_ends_at, is_paid, is_active")
+        .eq("owner_id", data.user.id)
+        .single();
+
+      if (shopError || !shop) {
+        throw new Error("Barbearia não encontrada.");
+      }
+
+      // 5. Verificar se a conta está ativa (bloqueio manual)
+      if (!shop.is_active) {
+        navigate("/payment");
+        return;
+      }
+
+      // 6. Verificar trial
+      const now = new Date();
+      const trialEndsAt = new Date(shop.trial_ends_at);
+      const trialExpired = now > trialEndsAt;
+
+      if (trialExpired && !shop.is_paid) {
+        navigate("/payment");
+        return;
+      }
+
+      // 8. Sucesso total
       navigate("/dashboard/barber");
     } catch (error) {
       console.error("Erro no login:", error.message);

@@ -12,6 +12,9 @@ import UserLogin from "../pages/auth/UserLogin";
 import BarberLogin from "../pages/auth/BarberLogin";
 import LoginChoice from "../pages/auth/LoginChoice";
 
+//Barber - Payments
+import BarberPayment from "../pages/dashboard/barber/BarberPayments";
+
 // Dashboards
 import DashboardUser from "../pages/dashboard/user/DashBoardUser";
 import DashboardBarber from "../pages/dashboard/barber/DashBoardBarber";
@@ -45,6 +48,9 @@ export default function RoutesApp() {
 
       {/* Mostrar agendamentos */}
       <Route path="/meus-agendamentos" element={<MyBookings />} />
+
+      {/* Pagina de bloqueio / pagamentos */}
+      <Route path="/payment" element={<BarberPayment />} />
 
       {/* ROTAS PROTEGIDAS */}
       <Route
