@@ -1,138 +1,164 @@
-# 💈 BarberSystem — Sistema de Gestão para Barbearias
+💈 BarberSystem — Sistema de Gestão para Barbearias
 
-O **BarberSystem** é um sistema web desenvolvido para facilitar a gestão de barbearias, oferecendo uma experiência simples e moderna tanto para **clientes** quanto para **barbeiros**.
+O BarberSystem é um sistema web desenvolvido para facilitar a gestão de barbearias, oferecendo uma experiência simples e moderna tanto para clientes quanto para barbeiros.
 
-O projeto foi idealizado com foco em **boas práticas de desenvolvimento**, **autenticação segura**, **componentização**, **organização de código** e **escalabilidade**, simulando um cenário real de aplicação profissional.
+O projeto foi idealizado com foco em boas práticas de desenvolvimento, autenticação segura, componentização, organização de código e escalabilidade, simulando um cenário real de aplicação profissional (SaaS).
 
----
-
-## 🎯 Objetivo do Projeto
+🎯 Objetivo do Projeto
 
 Criar uma base sólida para um sistema completo de barbearia, permitindo:
 
-- Diferenciação de perfis (cliente e barbeiro)
-- Autenticação segura
-- Estrutura preparada para agendamentos, serviços e dashboards
-- Código organizado, reutilizável e fácil de evoluir
+Diferenciação de perfis (cliente e barbeiro)
 
-Este projeto faz parte do meu processo de transição para a área de desenvolvimento e demonstra minha capacidade de **planejar, estruturar e implementar** uma aplicação moderna do zero.
+Autenticação segura
 
----
+Estrutura preparada para agendamentos, serviços e dashboards
 
-## 🧠 Visão Geral do Sistema
+Código organizado, reutilizável e fácil de evoluir
 
-### 👤 Tipos de Usuário
+Este projeto faz parte do meu processo de transição para a área de desenvolvimento e demonstra minha capacidade de planejar, estruturar e implementar uma aplicação moderna do zero.
 
-- **Cliente**
+🧠 Visão Geral do Sistema
+👤 Tipos de Usuário
+Cliente
 
-  - Cria conta
-  - Realiza login
-  - Terá acesso ao dashboard do cliente
+Cria conta
 
-- **Barbeiro**
-  - Cria conta específica
-  - Realiza login próprio
-  - Terá acesso ao dashboard do barbeiro
+Realiza login
+
+Acessa o dashboard do cliente
+
+Visualiza dados da barbearia através do slug
+
+Barbeiro
+
+Cria conta específica
+
+Realiza login próprio
+
+Acessa o dashboard do barbeiro
+
+Possui um slug exclusivo da barbearia
 
 Cada tipo de usuário possui:
 
-- Fluxo de cadastro separado
-- Fluxo de login separado
-- Estrutura de dashboard independente
+Fluxo de cadastro separado
 
----
+Fluxo de login separado
 
-## ✨ Funcionalidades Implementadas
+Estrutura de dashboard independente
 
-✔ Página inicial apresentando o sistema  
-✔ Escolha do tipo de conta (cliente ou barbeiro)  
-✔ Cadastro com email e senha  
-✔ Login com autenticação via Supabase  
-✔ Criação automática de perfil no banco de dados  
-✔ Contexto global de autenticação (AuthContext)  
-✔ Componentes reutilizáveis  
-✔ Layout moderno, escuro e responsivo  
+✨ Funcionalidades Implementadas
+
+✔ Página inicial apresentando o sistema
+✔ Escolha do tipo de conta (cliente ou barbeiro)
+✔ Cadastro com email e senha
+✔ Login com autenticação via Supabase
+✔ Criação automática de perfil no banco de dados
+✔ Contexto global de autenticação (AuthContext)
+✔ Componentes reutilizáveis
+✔ Layout moderno, escuro e responsivo
 ✔ Navegação entre páginas com React Router
 
----
+▶️ Como Testar o Projeto (Deploy na Vercel)
 
-## 🛠️ Tecnologias Utilizadas e Como Foram Aplicadas
+O projeto está disponível online e pode ser testado diretamente pelo navegador.
 
-### ⚛️ React (com Vite)
+🔗 Acesse:
+👉 https://barber-system-pink.vercel.app/
 
-Utilizado para construção da interface baseada em componentes reutilizáveis.
+✂️ Fluxo 1 — Testando como Barbeiro
 
-- Hooks (`useState`, `useEffect`, `useContext`)
-- Componentização para inputs, botões e layouts
-- Separação clara entre páginas, componentes e contexto
+Acesse o sistema pelo link acima
 
-O Vite foi escolhido pela sua **rapidez**, **simplicidade** e **ambiente moderno de desenvolvimento**.
+Clique em “Sou um barbeiro”
 
----
+Crie uma conta de barbeiro
 
-### 🌐 React Router DOM
+Após o login, você terá acesso:
 
-Responsável pelo sistema de rotas da aplicação.
+Ao dashboard do barbeiro
 
-- Navegação entre páginas
-- Separação de fluxos (home, login, cadastro, dashboard)
-- Base preparada para proteção de rotas privadas no futuro
+Aos itens exclusivos do barbeiro
 
----
+Ao slug da barbearia (identificador único)
 
-### 🔐 Supabase
+📌 Guarde o slug, ele será usado para o teste como cliente.
 
-Utilizado como **Backend as a Service (BaaS)**, fornecendo:
+💇‍♂️ Fluxo 2 — Testando como Cliente
 
-- Autenticação com email e senha
-- Gerenciamento de sessão
-- Banco de dados PostgreSQL
-- Segurança via variáveis de ambiente
+Volte para a página inicial
 
-Foi implementada:
+Clique em “Sou cliente”
 
-- Autenticação de usuários
-- Criação de perfil (`profiles`) após o cadastro
-- Recuperação de dados do usuário autenticado
+Crie uma conta de cliente
 
----
+Após o login:
 
-### 🎨 Tailwind CSS
+Informe o slug do barbeiro criado anteriormente
 
-Responsável por toda a estilização do projeto.
+Assim, você acessa apenas os dados daquela barbearia específica
 
-- Layout responsivo
-- Tema escuro moderno
-- Padronização visual
-- Agilidade no desenvolvimento
-- Classes utilitárias bem organizadas
+🔄 O que esse fluxo demonstra
 
----
+Separação clara de perfis
 
-### 🧩 Lucide React
+Regras de negócio entre cliente e barbeiro
 
-Biblioteca de ícones moderna e leve.
+Uso de slug como identificador público
 
-- Utilizada para botões de navegação e ações
-- Melhora a experiência do usuário
-- Mantém consistência visual
+Estrutura pensada para um SaaS real com múltiplos usuários
 
----
+🛠️ Tecnologias Utilizadas
+⚛️ React + Vite
 
-### 🔄 Context API (AuthContext)
+Componentização
 
-Utilizada para gerenciamento global de autenticação.
+Hooks (useState, useEffect, useContext)
 
-- Estado do usuário logado
-- Dados do perfil
-- Controle de sessão
-- Preparação para proteção de rotas
+Estrutura moderna e performática
 
----
+🌐 React Router DOM
 
-### 🗂️ Estrutura de Pastas
+Sistema de rotas
 
-```text
+Separação de fluxos
+
+Base preparada para proteção de rotas
+
+🔐 Supabase
+
+Autenticação com email e senha
+
+Gerenciamento de sessão
+
+Banco de dados PostgreSQL
+
+Uso de variáveis de ambiente
+
+🎨 Tailwind CSS
+
+Layout responsivo
+
+Tema escuro moderno
+
+Padronização visual
+
+🧩 Lucide React
+
+Ícones leves e modernos
+
+Consistência visual
+
+🔄 Context API (AuthContext)
+
+Gerenciamento global da autenticação
+
+Dados do usuário logado
+
+Controle de sessão
+
+🗂️ Estrutura de Pastas
 src/
 ├── components/        # Componentes reutilizáveis
 ├── context/           # Contextos globais (Auth)
@@ -144,6 +170,8 @@ src/
 ├── routes/            # Centralização das rotas
 ├── App.jsx
 └── main.jsx
+
+
 Essa organização facilita:
 
 Manutenção
@@ -155,23 +183,24 @@ Leitura do código
 Trabalho em equipe
 
 🔐 Variáveis de Ambiente
+
 O projeto utiliza variáveis de ambiente para segurança:
 
-env
-Copiar código
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+
+
 Um arquivo .env.example é fornecido como referência.
 As chaves reais não são versionadas.
 
-▶️ Como Executar o Projeto
-bash
-Copiar código
+💻 Como Executar Localmente
 git clone https://github.com/seu-usuario/barbersystem.git
 cd barbersystem
 npm install
 npm run dev
+
 🚧 Funcionalidades Planejadas (Roadmap)
+
 🔒 Proteção de rotas por tipo de usuário
 
 📅 Sistema de agendamentos
@@ -184,27 +213,27 @@ npm run dev
 
 🔔 Notificações
 
-☁️ Deploy em produção (Vercel)
-
 📈 O Que Este Projeto Demonstra
+
 Capacidade de estruturar um projeto real
 
 Conhecimento em React moderno
 
-Uso consciente de backend como serviço
+Uso consciente de Backend as a Service
 
 Organização de código
 
 Pensamento voltado para escalabilidade
 
-Boas práticas de versionamento e segurança
+Boas práticas de segurança e versionamento
 
 👨‍💻 Autor
+
 Leonardo Abraão Assis
 Estudante de Sistemas de Informação
 Desenvolvedor em formação focado em Web e Mobile
 Buscando a primeira oportunidade profissional na área de tecnologia 🚀
 
 📄 Licença
-Projeto desenvolvido para fins educacionais e profissionais.
-```
+
+Projeto desenvolvido para fins educacionais e profissionais
