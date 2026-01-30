@@ -68,6 +68,21 @@ Layout moderno, escuro e responsivo
 
 Navegação entre páginas com React Router
 
+## 📸 Screenshots
+
+As imagens abaixo demonstram o fluxo real da aplicação em funcionamento,
+desde a escolha do perfil até os dashboards específicos de cada tipo de usuário.
+
+![Pagina inicial](./screenshots/01-pagina-inicial.png)
+
+![Cadastro do barbeiro](./screenshots/02-cadastro-barbeiro.png)
+
+![Cadastro do cliente](./screenshots/03-cadastro-cliente.png)
+
+![Escolha de perfil](./screenshots/04-selecionar-role.png)
+
+![Pagina inicial](./screenshots/01-pagina-inicial.png)
+
 ▶️ Testando o Projeto (Deploy)
 
 O projeto está disponível online e pode ser testado diretamente pelo navegador:
