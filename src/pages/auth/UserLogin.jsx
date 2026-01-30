@@ -28,6 +28,14 @@ export default function UserLogin() {
         throw new Error("Usuário não autenticado");
       }
 
+      // 🔐 VERIFICAÇÃO DE EMAIL CONFIRMADO
+      if (!authData.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        throw new Error(
+          "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.",
+        );
+      }
+
       const userId = authData.user.id;
 
       // 2️⃣ Buscar profile (criado pela trigger)
