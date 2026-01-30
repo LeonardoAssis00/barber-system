@@ -73,15 +73,21 @@ Navegação entre páginas com React Router
 As imagens abaixo demonstram o fluxo real da aplicação em funcionamento,
 desde a escolha do perfil até os dashboards específicos de cada tipo de usuário.
 
-![Pagina inicial](./screenshots/01-pagina-inicial.png)
+![Pagina inicial](.src/assets/screenshots/01-pagina-inicial.png)
 
-![Cadastro do barbeiro](./screenshots/02-cadastro-barbeiro.png)
+![Cadastro do barbeiro](.src/assets/screenshots/02-cadastro-barbeiro.png)
 
-![Cadastro do cliente](./screenshots/03-cadastro-cliente.png)
+![Cadastro do cliente](.src/assets/screenshots/03-cadastro-cliente.png)
 
-![Escolha de perfil](./screenshots/04-selecionar-role.png)
+![Escolha de perfil](.src/assets/screenshots/04-selecionar-role.png)
 
-![Pagina inicial](./screenshots/01-pagina-inicial.png)
+![Login da barbearia](./src/assets/screenshots/05-login-barbearia.png)
+
+![Login do cliente](./src/assets/screenshots/06-login-cliente.png)
+
+![Pagina inicial da barbearia](./src/assets/screenshots/07-home-barbeiro.png)
+
+![Login barbearia](./src/assets/screenshots/05-login-barbearia.png)
 
 ▶️ Testando o Projeto (Deploy)
 
