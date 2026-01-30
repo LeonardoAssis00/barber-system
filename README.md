@@ -75,7 +75,7 @@ desde a escolha do perfil até os dashboards específicos de cada tipo de usuár
 
 ![Pagina inicial](.src/assets/screenshots/01-pagina-inicial.png)
 
-![Cadastro do barbeiro](.src/assets/screenshots/02-cadastro-barbeiro.png)
+![Cadastro do barbeiro](.src/assets/screenshots/02.1-cadastro-barbeiro.png)
 
 ![Cadastro do cliente](.src/assets/screenshots/03-cadastro-cliente.png)
 
