@@ -2,15 +2,15 @@
 
 O BarberSystem é um sistema web desenvolvido para facilitar a gestão de barbearias, oferecendo uma experiência simples e moderna tanto para clientes quanto para barbeiros.
 
-O projeto foi idealizado com foco em boas práticas de desenvolvimento, autenticação segura, componentização, organização de código e escalabilidade, simulando um cenário real de aplicação profissional (SaaS).
+O projeto foi criado com foco em boas práticas de desenvolvimento, autenticação segura, organização de código e estrutura escalável, simulando um cenário real de aplicação profissional no modelo SaaS.
 
 🎯 Objetivo do Projeto
 
 Criar uma base sólida para um sistema completo de barbearia, permitindo:
 
-Diferenciação de perfis (cliente e barbeiro)
+Diferenciação clara de perfis (cliente e barbeiro)
 
-Autenticação segura
+Autenticação segura de usuários
 
 Estrutura preparada para agendamentos, serviços e dashboards
 
@@ -19,24 +19,24 @@ Código organizado, reutilizável e fácil de evoluir
 Este projeto faz parte do meu processo de transição para a área de desenvolvimento e demonstra minha capacidade de planejar, estruturar e implementar uma aplicação moderna do zero.
 
 🧠 Visão Geral do Sistema
+
 👤 Tipos de Usuário
+
 Cliente
 
-Cria conta
-
-Realiza login
+Cria conta e realiza login
 
 Acessa o dashboard do cliente
 
-Visualiza dados da barbearia através do slug
+Visualiza dados de uma barbearia específica através do slug
 
 Barbeiro
 
-Cria conta específica
+Cria conta específica para barbeiros
 
-Realiza login próprio
+Realiza login
 
-Acessa o dashboard do barbeiro
+Acessa o painel do barbeiro
 
 Possui um slug exclusivo da barbearia
 
@@ -46,44 +46,52 @@ Fluxo de cadastro separado
 
 Fluxo de login separado
 
-Estrutura de dashboard independente
+Estrutura de painel independente
 
 ✨ Funcionalidades Implementadas
 
-✔ Página inicial apresentando o sistema
-✔ Escolha do tipo de conta (cliente ou barbeiro)
-✔ Cadastro com email e senha
-✔ Login com autenticação via Supabase
-✔ Criação automática de perfil no banco de dados
-✔ Contexto global de autenticação (AuthContext)
-✔ Componentes reutilizáveis
-✔ Layout moderno, escuro e responsivo
-✔ Navegação entre páginas com React Router
+Página inicial apresentando o sistema
 
-▶️ Como Testar o Projeto (Deploy na Vercel)
+Escolha do tipo de conta (cliente ou barbeiro)
 
-O projeto está disponível online e pode ser testado diretamente pelo navegador.
+Cadastro com e-mail e senha
 
-🔗 Acesse:
+Login com autenticação via Supabase
+
+Criação automática de perfil no banco de dados
+
+Contexto global de autenticação (AuthContext)
+
+Componentes reutilizáveis
+
+Layout moderno, escuro e responsivo
+
+Navegação entre páginas com React Router
+
+▶️ Testando o Projeto (Deploy)
+
+O projeto está disponível online e pode ser testado diretamente pelo navegador:
+
+🔗 Deploy na Vercel:
 👉 https://barber-system-pink.vercel.app/
 
 ✂️ Fluxo 1 — Testando como Barbeiro
 
 Acesse o sistema pelo link acima
 
-Clique em “Sou um barbeiro”
+Clique em “Sou barbeiro”
 
 Crie uma conta de barbeiro
 
 Após o login, você terá acesso:
 
-Ao dashboard do barbeiro
+Dashboard do barbeiro
 
-Aos itens exclusivos do barbeiro
+Funcionalidades exclusivas do perfil
 
-Ao slug da barbearia (identificador único)
+Slug da barbearia (identificador único)
 
-📌 Guarde o slug, ele será usado para o teste como cliente.
+📌 Guarde o slug, ele será usado no teste como cliente.
 
 💇‍♂️ Fluxo 2 — Testando como Cliente
 
@@ -97,7 +105,7 @@ Após o login:
 
 Informe o slug do barbeiro criado anteriormente
 
-Assim, você acessa apenas os dados daquela barbearia específica
+Assim, o cliente acessa apenas os dados daquela barbearia específica.
 
 🔄 O que esse fluxo demonstra
 
@@ -128,7 +136,7 @@ Base preparada para proteção de rotas
 
 🔐 Supabase
 
-Autenticação com email e senha
+Autenticação com e-mail e senha
 
 Gerenciamento de sessão
 
@@ -148,11 +156,9 @@ Padronização visual
 
 Ícones leves e modernos
 
-Consistência visual
-
 🔄 Context API (AuthContext)
 
-Gerenciamento global da autenticação
+Gerenciamento global de autenticação
 
 Dados do usuário logado
 
@@ -160,14 +166,14 @@ Controle de sessão
 
 🗂️ Estrutura de Pastas
 src/
-├── components/        # Componentes reutilizáveis
-├── context/           # Contextos globais (Auth)
-├── lib/               # Configurações externas (Supabase)
-├── pages/             # Páginas da aplicação
-│   ├── auth/          # Login e cadastro
-│   ├── dashboard/     # Dashboards
+├── components/   # Componentes reutilizáveis
+├── context/      # Contextos globais (Auth)
+├── lib/          # Configurações externas (Supabase)
+├── pages/        # Páginas da aplicação
+│   ├── auth/     # Login e cadastro
+│   ├── dashboard/# Dashboards
 │   └── Home.jsx
-├── routes/            # Centralização das rotas
+├── routes/       # Centralização das rotas
 ├── App.jsx
 └── main.jsx
 
@@ -193,25 +199,25 @@ VITE_SUPABASE_ANON_KEY=
 Um arquivo .env.example é fornecido como referência.
 As chaves reais não são versionadas.
 
-💻 Como Executar Localmente
-git clone https://github.com/seu-usuario/barbersystem.git
+💻 Executando o Projeto Localmente
+git clone https://github.com/LeonardoAssis00/barbersystem.git
 cd barbersystem
 npm install
 npm run dev
 
-🚧 Funcionalidades Planejadas (Roadmap)
+🚧 Funcionalidades Planejadas
 
-🔒 Proteção de rotas por tipo de usuário
+Proteção de rotas por tipo de usuário
 
-📅 Sistema de agendamentos
+Sistema de agendamentos
 
-🕒 Controle de horários do barbeiro
+Controle de horários do barbeiro
 
-💼 Cadastro de serviços
+Cadastro de serviços
 
-📊 Dashboard com relatórios
+Dashboard com relatórios
 
-🔔 Notificações
+Notificações
 
 📈 O Que Este Projeto Demonstra
 
@@ -223,7 +229,7 @@ Uso consciente de Backend as a Service
 
 Organização de código
 
-Pensamento voltado para escalabilidade
+Pensamento voltado à escalabilidade
 
 Boas práticas de segurança e versionamento
 
@@ -231,9 +237,9 @@ Boas práticas de segurança e versionamento
 
 Leonardo Abraão Assis
 Estudante de Sistemas de Informação
-Desenvolvedor em formação focado em Web e Mobile
-Buscando a primeira oportunidade profissional na área de tecnologia 🚀
+Desenvolvedor em formação com foco em Web e Mobile
+Em busca da primeira oportunidade profissional na área de tecnologia 🚀
 
 📄 Licença
 
-Projeto desenvolvido para fins educacionais e profissionais
+Projeto desenvolvido para fins educacionais e profissionais.
