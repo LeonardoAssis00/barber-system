@@ -87,8 +87,6 @@ desde a escolha do perfil até os dashboards específicos de cada tipo de usuár
 
 ![Pagina inicial da barbearia](./src/assets/screenshots/07-home-barbeiro.png)
 
-![Login barbearia](./src/assets/screenshots/05-login-barbearia.png)
-
 ▶️ Testando o Projeto (Deploy)
 
 O projeto está disponível online e pode ser testado diretamente pelo navegador:
